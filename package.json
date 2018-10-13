@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "engines":{
+    "node": "8.12.0",
+    "npm": "6.4.1"
+  },
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,6 +22,7 @@
   },
   "homepage": "https://github.com/sanand404/greenbox_dev#readme",
   "dependencies": {
+    "dotenv": "^6.1.0",
     "express": "^4.16.4"
   }
 }
