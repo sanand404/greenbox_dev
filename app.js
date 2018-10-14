@@ -1,27 +1,47 @@
-const express = require("express");
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import express from "express";
+import dotenv from "dotenv";
+import expressSanitizer from "express-sanitizer";
+import cookieSession from "cookie-session";
+import passport from "passport";
 
-const dotenv = require("dotenv");
+require("./modules/v1/services/passport");
+import mySqlConnection from "./modules/v1/services/mySQLConnection";
 
 dotenv.load();
-
 const app = express();
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: '/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-    console.log('accesstoken: ',accessToken);
-    console.log('refreshtoken: ',refreshToken);
-    console.log('profile: ',profile);
-}));
+app.use(
+  cookieSession({
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    keys: [process.env.SECRET_KEY]
+  })
+);
 
-app.get('/auth/google', passport.authenticate('google', {
-    scope : ['profile', 'email']
-}));
+app.use(passport.initialize());
+app.use(passport.session());
 
-app.get('/auth/google/callback', passport.authenticate('google'));
+app.use(bodyParser.json());
+app.use(
+  bodyParser.urlencoded({
+    extended: false
+  })
+);
 
-app.listen(process.env.PORT || 3000);
+// app.use(expressSanitizer());
+
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//   );
+//   next();
+// });
+
+require("./modules/v1/login/routes/loginRoute")(app);
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server started ");
+});
