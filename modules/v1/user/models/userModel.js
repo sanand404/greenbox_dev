@@ -26,7 +26,7 @@ class UserModel {
     new Promise((resolve, reject) => {
       const query = `INSERT INTO User VALUES (?,?,?,?)`;
       const queryParameters = [
-        parameter.id,
+        parameter.idUser,
         parameter.firstName,
         parameter.lastName,
         parameter.emailId
