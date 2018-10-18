@@ -5,13 +5,15 @@ import dotenv from "dotenv";
 import expressSanitizer from "express-sanitizer";
 import cookieSession from "cookie-session";
 import passport from "passport";
+import morgan from "morgan";
 
+import loginRoute from "./modules/v1/login/routes/loginRoute";
 require("./modules/v1/services/passport");
-import mySqlConnection from "./modules/v1/services/mySQLConnection";
 
 dotenv.load();
 const app = express();
 
+app.use(morgan("dev"));
 app.use(
   cookieSession({
     maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -19,6 +21,7 @@ app.use(
   })
 );
 
+//Middlewares
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -29,19 +32,10 @@ app.use(
   })
 );
 
-// app.use(expressSanitizer());
+//Routes
+app.use('/api', loginRoute);
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-//   );
-//   next();
-// });
-
-require("./modules/v1/login/routes/loginRoute")(app);
-
+//Start the server
 app.listen(process.env.PORT || 3000, () => {
-  console.log("Server started ");
+  console.log("Server started on port ", process.env.PORT);
 });

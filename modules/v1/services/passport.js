@@ -17,7 +17,7 @@ passport.deserializeUser((idUser, done) => {
   });
 });
 
-passport.use(
+passport.use("googleToken",
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
@@ -37,7 +37,7 @@ passport.use(
           if (!existingUser) {
             console.log("In Add", profile.emails[0]);
             UserModel.addUser({
-              id: profile.id,
+              idUser: profile.id,
               firstName: profile.name.givenName,
               lastName: profile.name.familyName,
               emailId: profile.emails[0].value

@@ -1,16 +1,20 @@
-const passport = require("passport");
+import passport from "passport";
+import express from "express";
+import LoginController from "../controllers/loginController";
 
-module.exports = app => {
-  app.get(
-    "/auth/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"]
-    })
-  );
+const router = express.Router();
 
-  app.get("/auth/google/callback", passport.authenticate("google"));
-  app.get("/api/current_user", (req, res) => {
-    console.log("HEOOO");
-    res.send(req.user);
-  });
-};
+router.post("/register", LoginController.createUser);
+router.post("/login", (req, res) => { });
+router.post("/auth/google", passport.authenticate("googleToken", {
+  scope: ["profile", "email"]
+}), (req, res) => {
+  res.send("In google token");
+});
+router.get("/auth/google/callback", passport.authenticate("googleToken"));
+
+router.get("/current_user", (req, res) => {
+  res.send(req.user);
+});
+
+export default router;
