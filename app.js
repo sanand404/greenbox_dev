@@ -33,7 +33,7 @@ app.use(
 );
 
 //Routes
-app.use('/api', loginRoute);
+app.use("/", loginRoute);
 
 //Start the server
 app.listen(process.env.PORT || 3000, () => {
