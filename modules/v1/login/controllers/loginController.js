@@ -16,19 +16,33 @@ class LoginController {
     };
 
     try {
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(newUser.password, salt);
+      UserModel.getUserByDomain({
+        emailId: newUser.emailId,
+        domain: newUser.domain
+      }).then(async isUserExists => {
+        if (isUserExists.result && isUserExists.result.length > 0) {
+          return res.send({
+            success: false,
+            message: "EmailId already exists"
+          });
+        }
 
-      newUser.password = passwordHash;
-      UserModel.addUser(newUser)
-        .then(user => {
-          if (user) {
-            res.send({ success: true, result: newUser });
-          }
-        })
-        .catch(err => {
-          res.send({ success: false, error: err });
-        });
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(newUser.password, salt);
+
+        newUser.password = passwordHash;
+        UserModel.addUser(newUser)
+          .then(user => {
+            if (user) {
+              res.send({ success: true, result: newUser });
+            }
+          })
+          .catch(err => {
+            res.send({ success: false, error: err });
+          });
+      });
+
+      console.log("--------------");
     } catch (err) {
       res.send({ success: false, error: err });
     }
