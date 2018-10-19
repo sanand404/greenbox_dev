@@ -6,12 +6,20 @@ const ExtractJWT = require("passport-jwt").ExtractJwt;
 
 import dotenv from "dotenv";
 import UserModel from "../user/models/userModel";
+import userModel from "../user/models/userModel";
 
 dotenv.load();
 
 passport.serializeUser((user, done) => {
-  console.log("In serialize ", JSON.stringify(user), " ID ", user[0].idUser);
-  done(null, user[0].idUser);
+  console.log("In serialize ", JSON.stringify(user));
+  console.log("-------Type of ", user.length);
+  //console.log(" ID ", user.idUser);
+  if (user.length === undefined) {
+    console.log("In undefined ");
+    done(null, user.idUser);
+  } else {
+    done(null, user[0].idUser);
+  }
 });
 
 passport.deserializeUser((idUser, done) => {
@@ -30,33 +38,56 @@ passport.use(
       callbackURL: "/auth/google/callback"
       // proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
+    async (accessToken, refreshToken, profile, done) => {
       console.log("accesstoken: ", accessToken);
       console.log("refreshtoken: ", refreshToken);
       console.log("profile: ", profile._json);
 
-      UserModel.getUserId(profile.emails[0].value)
-        .then(existingUser => {
-          console.log("Successfull ", existingUser);
-
-          if (!existingUser) {
-            UserModel.addUser({
-              idUser: profile.id,
-              firstName: profile.name.givenName,
-              lastName: profile.name.familyName,
-              emailId: profile.emails[0].value,
-              password: "",
-              domain: profile._json.domain
-            }).then(user => {
-              done(null, user);
-            });
-          } else {
-            done(null, existingUser);
-          }
-        })
-        .catch(err => {
-          console.log("Inside catch ", err);
+      const User = await UserModel.getUserId(profile.emails[0].value);
+      if (!User) {
+        console.log("-----------Creating new user");
+        const newUser = await UserModel.addUser({
+          idUser: profile.id,
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
+          emailId: profile.emails[0].value,
+          password: "",
+          domain: profile._json.domain
         });
+        console.log("------------New User created ", newUser);
+        if (newUser) {
+          console.log("--------------Sending response", newUser.data);
+          done(null, newUser.data);
+        } else {
+          done(null, false);
+        }
+      } else {
+        console.log("------------User already exists ", User);
+        done(null, User);
+      }
+
+      // UserModel.getUserId(profile.emails[0].value)
+      //   .then(existingUser => {
+      //     console.log("Successfull ", existingUser);
+
+      //     if (!existingUser) {
+      //       UserModel.addUser({
+      //         idUser: profile.id,
+      //         firstName: profile.name.givenName,
+      //         lastName: profile.name.familyName,
+      //         emailId: profile.emails[0].value,
+      //         password: "",
+      //         domain: profile._json.domain
+      //       }).then(user => {
+      //         done(null, user);
+      //       });
+      //     } else {
+      //       done(null, existingUser);
+      //     }
+      //   })
+      //   .catch(err => {
+      //     console.log("Inside catch ", err);
+      //   });
     }
   )
 );

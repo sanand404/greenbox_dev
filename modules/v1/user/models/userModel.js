@@ -21,7 +21,7 @@ class UserModel {
           if (err) {
             return reject({ Error: "Error in fetching User Records " + err });
           } else if (result && result.length) {
-            return resolve(result);
+            return resolve({ result });
           } else {
             return resolve(false);
           }
@@ -53,9 +53,10 @@ class UserModel {
   addUser = parameter =>
     new Promise((resolve, reject) => {
       console.log("Add User parameter ", parameter);
+      const idUser = Math.floor(new Date() / 10);
       const query = `INSERT INTO User VALUES (?,?,?,?,?,?)`;
       const queryParameters = [
-        Math.floor(new Date() / 10),
+        idUser,
         parameter.firstName,
         parameter.lastName,
         parameter.emailId,
@@ -72,7 +73,10 @@ class UserModel {
           if (err) {
             reject({ Error: "Error in creating User", err });
           } else if (result) {
-            resolve(result);
+            resolve({
+              result: result,
+              data: { idUser: idUser, emailId: parameter.emailId }
+            });
           } else {
             resolve(false);
           }
