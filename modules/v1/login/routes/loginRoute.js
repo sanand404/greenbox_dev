@@ -9,16 +9,16 @@ router.post("/login", LoginController.login);
 router.get(
   "/auth/google",
   passport.authenticate("googleToken", {
+    session: false,
     scope: ["profile", "email"]
-  }),
-  (req, res) => {
-    res.send("In google token");
-  }
+  })
 );
 router.get(
   "/auth/google/callback",
   passport.authenticate("googleToken"),
   (req, res) => {
+    console.log("Request body user", req.user);
+    console.log("Request google access token ", req.user.accessToken);
     res.send("Hey welocome");
   }
 );

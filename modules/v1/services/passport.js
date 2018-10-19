@@ -10,15 +10,15 @@ import userModel from "../user/models/userModel";
 
 dotenv.load();
 
-passport.serializeUser((user, done) => {
-  console.log("In serialize ", JSON.stringify(user));
-  console.log("-------Type of ", user.length);
+passport.serializeUser((googleObj, done) => {
+  console.log("In serialize ", JSON.stringify(googleObj));
+  console.log("-------Type of ", googleObj.length);
   //console.log(" ID ", user.idUser);
-  if (user.length === undefined) {
+  if (googleObj.user.length === undefined) {
     console.log("In undefined ");
-    done(null, user.idUser);
+    done(null, googleObj.user.idUser);
   } else {
-    done(null, user[0].idUser);
+    done(null, googleObj.user[0].idUser);
   }
 });
 
@@ -43,7 +43,10 @@ passport.use(
       console.log("refreshtoken: ", refreshToken);
       console.log("profile: ", profile._json);
 
-      const User = await UserModel.getUserId(profile.emails[0].value);
+      const User = await UserModel.getUserId({
+        emailId: profile.emails[0].value,
+        domain: profile._json.domain
+      });
       if (!User) {
         console.log("-----------Creating new user");
         const newUser = await UserModel.addUser({
@@ -57,37 +60,14 @@ passport.use(
         console.log("------------New User created ", newUser);
         if (newUser) {
           console.log("--------------Sending response", newUser.data);
-          done(null, newUser.data);
+          done(null, { user: newUser.data, accessToken: accessToken });
         } else {
           done(null, false);
         }
       } else {
         console.log("------------User already exists ", User);
-        done(null, User);
+        done(null, { user: User, accessToken: accessToken });
       }
-
-      // UserModel.getUserId(profile.emails[0].value)
-      //   .then(existingUser => {
-      //     console.log("Successfull ", existingUser);
-
-      //     if (!existingUser) {
-      //       UserModel.addUser({
-      //         idUser: profile.id,
-      //         firstName: profile.name.givenName,
-      //         lastName: profile.name.familyName,
-      //         emailId: profile.emails[0].value,
-      //         password: "",
-      //         domain: profile._json.domain
-      //       }).then(user => {
-      //         done(null, user);
-      //       });
-      //     } else {
-      //       done(null, existingUser);
-      //     }
-      //   })
-      //   .catch(err => {
-      //     console.log("Inside catch ", err);
-      //   });
     }
   )
 );
@@ -102,7 +82,10 @@ passport.use(
     },
     (payload, done) => {
       console.log("Payload in passport ", payload);
-      UserModel.getUserId(payload.emailId).then(user => {
+      UserModel.getUserId({
+        emailId: payload.emailId,
+        domain: "playsoftech.in"
+      }).then(user => {
         console.log("Passport User ", user);
         if (user) {
           done(null, user);

@@ -1,8 +1,32 @@
 import mySqlConnection from "../../services/mySQLConnection";
 
 class UserModel {
-  getUserByEmailId = parameters =>
-    new Promise((resolve, reject) => {
+  getUserByDomain = parameters => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT firstName, lastName, emailId, password, domain FROM User WHERE emailId = ? AND domain = ?`;
+      const queryParameters = [parameters.emailId, parameters.domain];
+
+      const temp = mySqlConnection.query(
+        query,
+        queryParameters,
+        (err, result) => {
+          console.log("sql getUserByDomain :", temp.sql);
+          console.log("Result ", result);
+
+          if (err) {
+            return reject({ Error: "Error in fetching User Records " + err });
+          } else if (result && result.length) {
+            return resolve({ result });
+          } else {
+            return resolve(false);
+          }
+        }
+      );
+    });
+  };
+
+  getUserByEmailId = parameters => {
+    return new Promise((resolve, reject) => {
       const query = `SELECT idUser, firstName, lastName, emailId, domain FROM User WHERE emailId = ? AND password =? AND domain = ?`;
       console.log("Parameters ", parameters);
       const queryParameters = [
@@ -28,12 +52,13 @@ class UserModel {
         }
       );
     });
+  };
 
-  getUserId = parameter =>
-    new Promise((resolve, reject) => {
-      const query = `SELECT idUser, firstName, lastName, emailId, domain  FROM User WHERE emailId = ?`;
+  getUserId = parameters => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT idUser, firstName, lastName, emailId, domain  FROM User WHERE emailId = ? AND domain = ?`;
 
-      const queryParameters = [parameter];
+      const queryParameters = [parameters.emailId, parameters.domain];
       const temp = mySqlConnection.query(
         query,
         queryParameters,
@@ -49,9 +74,10 @@ class UserModel {
         }
       );
     });
+  };
 
-  addUser = parameter =>
-    new Promise((resolve, reject) => {
+  addUser = parameter => {
+    return new Promise((resolve, reject) => {
       console.log("Add User parameter ", parameter);
       const idUser = Math.floor(new Date() / 10);
       const query = `INSERT INTO User VALUES (?,?,?,?,?,?)`;
@@ -83,6 +109,7 @@ class UserModel {
         }
       );
     });
+  };
 }
 
 export default new UserModel();

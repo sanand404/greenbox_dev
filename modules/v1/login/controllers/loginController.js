@@ -34,15 +34,31 @@ class LoginController {
     }
   };
 
-  login = (req, res) => {
-    UserModel.getUserByEmailId(req.body)
+  login = async (req, res) => {
+    //Check Email And Domain
+    const user = await UserModel.getUserByDomain(req.body);
+
+    if (!user) {
+      res.send({ success: false, message: "EmailId not found" });
+    }
+
+    const password = user.result[0].password;
+    const isMatch = await bcrypt.compare(req.body.password, password);
+
+    if (!isMatch) {
+      res.send({ success: false, message: "Password is incorrect" });
+    }
+
+    UserModel.getUserByEmailId({
+      emailId: req.body.emailId,
+      password: password,
+      domain: req.body.domain
+    })
       .then(user => {
         if (user) {
-          console.log("User found ", JSON.stringify(user[0]));
-
           const payload = {
-            id: user[0].idUser,
-            emailId: user[0].emailId
+            id: user.result[0].idUser,
+            emailId: user.result[0].emailId
           };
           jwt.sign(
             payload,
@@ -57,8 +73,7 @@ class LoginController {
             }
           );
         } else {
-          console.log("False User found ", user);
-          res.send({ token: false });
+          res.send({ success: false, token: "Error in generating token" });
         }
       })
       .catch(err => {
