@@ -19,7 +19,7 @@ router.get(
   (req, res) => {
     console.log("Request body user", req.user);
     console.log("Request google access token ", req.user.accessToken);
-    res.send("Hey welocome");
+    LoginController.login(req, res);
   }
 );
 

@@ -6,16 +6,14 @@ const ExtractJWT = require("passport-jwt").ExtractJwt;
 
 import dotenv from "dotenv";
 import UserModel from "../user/models/userModel";
-import userModel from "../user/models/userModel";
 
 dotenv.load();
 
 passport.serializeUser((googleObj, done) => {
   console.log("In serialize ", JSON.stringify(googleObj));
-  console.log("-------Type of ", googleObj.length);
+
   //console.log(" ID ", user.idUser);
   if (googleObj.user.length === undefined) {
-    console.log("In undefined ");
     done(null, googleObj.user.idUser);
   } else {
     done(null, googleObj.user[0].idUser);
@@ -41,11 +39,11 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       console.log("accesstoken: ", accessToken);
       console.log("refreshtoken: ", refreshToken);
-      console.log("profile: ", profile._json);
+      console.log("profile: ", profile);
 
       const User = await UserModel.getUserId({
         emailId: profile.emails[0].value,
-        domain: profile._json.domain
+        provider: profile.provider
       });
       if (!User) {
         console.log("-----------Creating new user");
@@ -55,7 +53,7 @@ passport.use(
           lastName: profile.name.familyName,
           emailId: profile.emails[0].value,
           password: "",
-          domain: profile._json.domain
+          provider: profile.provider
         });
         console.log("------------New User created ", newUser);
         if (newUser) {
@@ -81,13 +79,15 @@ passport.use(
       secretOrKey: process.env.SECRET_KEY
     },
     (payload, done) => {
+      console.log("--------------HEY ");
       console.log("Payload in passport ", payload);
       UserModel.getUserId({
         emailId: payload.emailId,
-        domain: "playsoftech.in"
+        provider: payload.provider
       }).then(user => {
         console.log("Passport User ", user);
         if (user) {
+          delete user.password;
           done(null, user);
         } else {
           return done(null, false);

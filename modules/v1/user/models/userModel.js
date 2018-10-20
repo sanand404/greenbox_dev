@@ -3,8 +3,8 @@ import mySqlConnection from "../../services/mySQLConnection";
 class UserModel {
   getUserByDomain = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT firstName, lastName, emailId, password, domain FROM User WHERE emailId = ? AND domain = ?`;
-      const queryParameters = [parameters.emailId, parameters.domain];
+      const query = `SELECT firstName, lastName, emailId, password, provider FROM User WHERE emailId = ? AND provider = ?`;
+      const queryParameters = [parameters.emailId, parameters.provider];
 
       const temp = mySqlConnection.query(
         query,
@@ -27,12 +27,12 @@ class UserModel {
 
   getUserByEmailId = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT idUser, firstName, lastName, emailId, domain FROM User WHERE emailId = ? AND password =? AND domain = ?`;
+      const query = `SELECT idUser, firstName, lastName, emailId, provider FROM User WHERE emailId = ? AND password =? AND provider = ?`;
       console.log("Parameters ", parameters);
       const queryParameters = [
         parameters.emailId,
         parameters.password,
-        parameters.domain
+        parameters.provider
       ];
 
       const temp = mySqlConnection.query(
@@ -56,9 +56,9 @@ class UserModel {
 
   getUserId = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT idUser, firstName, lastName, emailId, domain  FROM User WHERE emailId = ? AND domain = ?`;
+      const query = `SELECT idUser, firstName, lastName, emailId, provider  FROM User WHERE emailId = ? AND provider = ?`;
 
-      const queryParameters = [parameters.emailId, parameters.domain];
+      const queryParameters = [parameters.emailId, parameters.provider];
       const temp = mySqlConnection.query(
         query,
         queryParameters,
@@ -80,14 +80,21 @@ class UserModel {
     return new Promise((resolve, reject) => {
       console.log("Add User parameter ", parameter);
       const idUser = Math.floor(new Date() / 10);
-      const query = `INSERT INTO User VALUES (?,?,?,?,?,?)`;
+      const dateTime = new Date();
+      const dateTimeString = dateTime
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+      const query = `INSERT INTO User VALUES (?,?,?,?,?,?,?,?)`;
       const queryParameters = [
         idUser,
         parameter.firstName,
         parameter.lastName,
         parameter.emailId,
         parameter.password,
-        parameter.domain
+        parameter.provider,
+        dateTimeString,
+        dateTimeString
       ];
       console.log("Inside add ", JSON.stringify(parameter));
 
@@ -101,7 +108,11 @@ class UserModel {
           } else if (result) {
             resolve({
               result: result,
-              data: { idUser: idUser, emailId: parameter.emailId }
+              data: {
+                idUser: idUser,
+                emailId: parameter.emailId,
+                provider: parameter.provider
+              }
             });
           } else {
             resolve(false);
