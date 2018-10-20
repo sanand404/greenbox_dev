@@ -2,10 +2,12 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import UserModel from "../../user/models/userModel";
+import MailUtility from "../../../../lib/SendMail/sendMail";
 
 dotenv.load();
 
 class LoginController {
+  //#region createUser
   createUser = async (req, res) => {
     const newUser = {
       firstName: req.body.firstName,
@@ -48,6 +50,35 @@ class LoginController {
     }
   };
 
+  //#endregion
+
+  //#region  generateJWTToken
+  generateJWTToken = payload =>
+    new Promise((resolve, reject) => {
+      console.log("generateJWTToken payload : ", payload);
+
+      jwt.sign(
+        payload,
+        process.env.SECRET_KEY,
+        {
+          //iat: new Date().getTime(),
+          expiresIn: new Date().setDate(new Date().getDate() + 1)
+        },
+        (err, token) => {
+          if (err) {
+            console.log("Error generateJWTToken", err);
+            return resolve(false);
+          }
+          console.log("Token generateJWTToken : ", token);
+          return resolve(token);
+        }
+      );
+    });
+
+  //#endregion
+
+  //#region  login
+
   login = async (req, res) => {
     //Check Email And provider
     let emailId = "";
@@ -62,12 +93,12 @@ class LoginController {
     } else if (req.user && req.user.user.length > 0) {
       console.log("In User body", req.user);
       emailId = req.user.user[0].emailId;
-      password = req.user.user[0].password;
+      password = "";
       provider = req.user.user[0].provider;
     } else if (req.user && req.user.user.emailId) {
       console.log("If User register for first time by google OAuth");
       emailId = req.user.user.emailId;
-      password = req.user.user.password;
+      password = "";
       provider = req.user.user.provider;
     }
 
@@ -82,11 +113,15 @@ class LoginController {
     if (!user) {
       res.send({ success: false, message: "EmailId not found" });
     }
-    const userPassword = user.result[0].password;
+
+    console.log("-----------", password);
 
     if (provider !== "playsoftech" && password) {
       res.send({ success: false, message: "Invalid user" });
     }
+    const userPassword = user.result[0].password;
+
+    console.log("---------UserPassword ", userPassword);
     const isMatch = await bcrypt.compare(password, userPassword);
 
     console.log("Password Match ", isMatch);
@@ -99,25 +134,22 @@ class LoginController {
       password: userPassword,
       provider: provider
     })
-      .then(user => {
+      .then(async user => {
         if (user) {
           const payload = {
             id: user.result[0].idUser,
             emailId: user.result[0].emailId,
             provider: user.result[0].provider
           };
-          jwt.sign(
-            payload,
-            process.env.SECRET_KEY,
-            {
-              //iat: new Date().getTime(),
-              expiresIn: new Date().setDate(new Date().getDate() + 1)
-            },
-            (err, token) => {
-              if (err) res.send({ token: false });
-              res.send({ token: token });
-            }
-          );
+
+          const jwtToken = await this.generateJWTToken(payload);
+
+          console.log("JWTTOken ", jwtToken);
+          if (jwtToken) {
+            res.send({ token: jwtToken });
+          } else {
+            res.send({ token: false });
+          }
         } else {
           res.send({ success: false, token: "Error in generating token" });
         }
@@ -126,6 +158,58 @@ class LoginController {
         console.log("Error in login ", err);
       });
   };
+
+  //#endregion
+
+  //#region forgotPassword
+
+  forgotPassword = async (req, res) => {
+    const user = await UserModel.getUserId({
+      emailId: req.body.emailId,
+      provider: "playsoftech"
+    });
+
+    if (!user) {
+      res.send({ success: false, message: "Please check the email-id" });
+    }
+
+    const payload = {
+      id: user[0].idUser,
+      emailId: user[0].emailId,
+      provider: user[0].provider
+    };
+
+    const jwtToken = await this.generateJWTToken(payload);
+
+    if (!jwtToken) {
+      res.send({ result: false, message: "Error in sending email" });
+    }
+
+    const mailObj = new MailUtility();
+    const mailSubject = "Forgot password";
+    const mailTo = user[0].emailId;
+    const mailTemplate = `<p> Hello ${user[0].firstName}, </p>
+                                        <p>Please click on the below link to reset your password </p>
+                                        <p><a href=reset_password?token=${jwtToken}>Click here</a></p>
+                                        <p>Thanks & Regards,</p>
+                                        <p>Playsoftech</p>`;
+    const mailOptions = mailObj.setMailOptions(
+      process.env.SMTP_USER,
+      mailTo,
+      mailSubject,
+      mailTemplate
+    );
+
+    mailObj.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        res.status(400).send({ status: "error", result: err });
+      } else {
+        res.status(200).send({ status: "success", result: data.data });
+      }
+    });
+  };
+
+  //#endregion
 }
 
 export default new LoginController();

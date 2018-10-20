@@ -32,4 +32,6 @@ router.get(
   }
 );
 
+router.post("/forgot_password", LoginController.forgotPassword);
+
 export default router;
