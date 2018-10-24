@@ -86,9 +86,10 @@ passport.use(
         provider: payload.provider
       }).then(user => {
         console.log("Passport User ", user);
-        if (user) {
+
+        if (user && user[0].isActive == 1) {
           delete user.password;
-          done(null, user);
+          return done(null, user);
         } else {
           return done(null, false);
         }

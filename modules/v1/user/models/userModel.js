@@ -3,7 +3,7 @@ import mySqlConnection from "../../services/mySQLConnection";
 class UserModel {
   getUserByDomain = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT firstName, lastName, emailId, password, provider FROM User WHERE emailId = ? AND provider = ?`;
+      const query = `SELECT firstName, lastName, emailId, password, provider, isActive FROM User WHERE emailId = ? AND provider = ?`;
       const queryParameters = [parameters.emailId, parameters.provider];
 
       const temp = mySqlConnection.query(
@@ -56,7 +56,7 @@ class UserModel {
 
   getUserId = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT idUser, firstName, lastName, emailId, provider  FROM User WHERE emailId = ? AND provider = ?`;
+      const query = `SELECT idUser, firstName, lastName, emailId, provider, isActive  FROM User WHERE emailId = ? AND provider = ?`;
 
       const queryParameters = [parameters.emailId, parameters.provider];
       const temp = mySqlConnection.query(
@@ -85,7 +85,7 @@ class UserModel {
         .toISOString()
         .slice(0, 19)
         .replace("T", " ");
-      const query = `INSERT INTO User VALUES (?,?,?,?,?,?,?,?)`;
+      const query = `INSERT INTO User VALUES (?,?,?,?,?,?,?,?,?)`;
       const queryParameters = [
         idUser,
         parameter.firstName,
@@ -94,7 +94,8 @@ class UserModel {
         parameter.password,
         parameter.provider,
         dateTimeString,
-        dateTimeString
+        dateTimeString,
+        0
       ];
       console.log("Inside add ", JSON.stringify(parameter));
 

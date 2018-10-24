@@ -7,6 +7,38 @@ import MailUtility from "../../../../lib/SendMail/sendMail";
 dotenv.load();
 
 class LoginController {
+  //#region sendAddUserMail
+  sendAddUserMail = user =>
+    new Promise((resolve, reject) => {
+      const mailObj = new MailUtility();
+      const mailSubject = "Getting started with Playsoftech";
+      const mailTo = user.emailId;
+      const mailTemplate = `<p> Welcome ${user.firstName}, </p>
+                                        <p>Congratulations! You've successfully signed up for <b>Playsoftech</b>.</p>
+                                        <p>Your account will activated once it will get verified by <b>Playsoftech</b>.</p>
+                                        <p>Thanks,</p>
+                                        <p>The Playsoftech team</p>`;
+
+      const mailOptions = mailObj.setMailOptions(
+        process.env.SMTP_USER,
+        mailTo,
+        mailSubject,
+        mailTemplate
+      );
+
+      mailObj.sendMail(mailOptions, (err, data) => {
+        if (err) {
+          return resolve(false);
+          //res.status(400).send({ status: "error", result: err });
+        } else {
+          return resolve(true);
+          //res.status(200).send({ status: "success", result: data.data });
+        }
+      });
+    });
+
+  //#endregion
+
   //#region createUser
   createUser = async (req, res) => {
     const newUser = {
@@ -36,6 +68,8 @@ class LoginController {
         UserModel.addUser(newUser)
           .then(user => {
             if (user) {
+              this.sendAddUserMail(newUser);
+
               res.send({ success: true, result: newUser });
             }
           })
@@ -109,15 +143,18 @@ class LoginController {
     });
 
     console.log("$$$$$$$$$$", user);
+    console.log("Constiotn ", !user);
+    console.log("Sec ", user && user.result[0].isActive == 0);
+    console.log("Active ", user.result[0].isActive);
 
-    if (!user) {
-      res.send({ success: false, message: "EmailId not found" });
+    if (!user || (user && user.result[0].isActive == 0)) {
+      return res.send({ success: false, message: "EmailId not found" });
     }
 
     console.log("-----------", password);
 
     if (provider !== "playsoftech" && password) {
-      res.send({ success: false, message: "Invalid user" });
+      return res.send({ success: false, message: "Invalid user" });
     }
     const userPassword = user.result[0].password;
 
@@ -126,7 +163,7 @@ class LoginController {
 
     console.log("Password Match ", isMatch);
     if (!isMatch && provider === "playsoftech") {
-      res.send({ success: false, message: "Password is incorrect" });
+      return res.send({ success: false, message: "Password is incorrect" });
     }
 
     UserModel.getUserByEmailId({
@@ -146,12 +183,15 @@ class LoginController {
 
           console.log("JWTTOken ", jwtToken);
           if (jwtToken) {
-            res.send({ token: jwtToken });
+            return res.send({ token: jwtToken });
           } else {
-            res.send({ token: false });
+            return res.send({ token: false });
           }
         } else {
-          res.send({ success: false, token: "Error in generating token" });
+          return res.send({
+            success: false,
+            token: "Error in generating token"
+          });
         }
       })
       .catch(err => {
@@ -169,9 +209,15 @@ class LoginController {
       provider: "playsoftech"
     });
 
-    if (!user) {
-      res.send({ success: false, message: "Please check the email-id" });
+    console.log("-------Forgot-Password User ", !user);
+    console.log("-----Seconds Cond ", user && user[0].isActive == 0);
+    console.log("-------IsActive forgotPAssword ", user[0].isActive);
+
+    if (!user || (user && user[0].isActive == 0)) {
+      return res.send({ success: false, message: "Please check the email-id" });
     }
+
+    console.log("After validation ");
 
     const payload = {
       id: user[0].idUser,
@@ -186,13 +232,14 @@ class LoginController {
     }
 
     const mailObj = new MailUtility();
-    const mailSubject = "Forgot password";
+    const mailSubject = "Reset your password";
     const mailTo = user[0].emailId;
-    const mailTemplate = `<p> Hello ${user[0].firstName}, </p>
-                                        <p>Please click on the below link to reset your password </p>
-                                        <p><a href=reset_password?token=${jwtToken}>Click here</a></p>
-                                        <p>Thanks & Regards,</p>
-                                        <p>Playsoftech</p>`;
+    const mailTemplate = `<p> Hi ${user[0].firstName}, </p>
+                                        <p>We've received a request to reset your password.If you didn't make the request, just ignore this email.</p>
+                                        <p>Otherwise, you can reset your password using this link:</p>
+                                        <p><a href=reset_password?token=${jwtToken}>Click here to reset your password</a></p>
+                                        <p>Thanks,</p>
+                                        <p>The Playsoftech team</p>`;
     const mailOptions = mailObj.setMailOptions(
       process.env.SMTP_USER,
       mailTo,
