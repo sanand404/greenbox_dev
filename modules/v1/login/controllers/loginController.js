@@ -143,9 +143,9 @@ class LoginController {
     });
 
     console.log("$$$$$$$$$$", user);
-    console.log("Constiotn ", !user);
-    console.log("Sec ", user && user.result[0].isActive == 0);
-    console.log("Active ", user.result[0].isActive);
+    //console.log("Constiotn ", !user);
+    //console.log("Sec ", user && user.result[0].isActive == 0);
+    //console.log("Active ", user.result[0].isActive);
 
     if (!user || (user && user.result[0].isActive == 0)) {
       return res.send({ success: false, message: "EmailId not found" });

@@ -1,11 +1,15 @@
 import passport from "passport";
 import express from "express";
 import LoginController from "../controllers/loginController";
-
+import LoginValidation from "../validators/loginValidation";
 const router = express.Router();
 
-router.post("/register", LoginController.createUser);
-router.post("/login", LoginController.login);
+router.post(
+  "/register",
+  LoginValidation.registrationValidation,
+  LoginController.createUser
+);
+router.post("/login", LoginValidation.loginValidation, LoginController.login);
 router.get(
   "/auth/google",
   passport.authenticate("googleToken", {
@@ -32,6 +36,10 @@ router.get(
   }
 );
 
-router.post("/forgot_password", LoginController.forgotPassword);
+router.post(
+  "/forgot_password",
+  LoginController.forgotPasswordValidation,
+  LoginController.forgotPassword
+);
 
 export default router;
