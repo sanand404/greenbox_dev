@@ -12,4 +12,6 @@ router.post(
   TeamController.createTeam
 );
 
+router.get("/list", TeamController.listTeams);
+
 export default router;

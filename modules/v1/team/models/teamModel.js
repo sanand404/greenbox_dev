@@ -3,7 +3,7 @@ import logger from "../../../../lib/logger";
 
 class TeamModel {
   createTeam = parameters => {
-    const query = `Call create_team(?,?,?,?)`;
+    const query = `Call create_team(?,?,?,?,?)`;
     const dateTime = new Date();
     const dateTimeString = dateTime
       .toISOString()
@@ -12,6 +12,7 @@ class TeamModel {
     const queryParameter = [
       parameters.temaFlag,
       parameters.teamName,
+      dateTimeString,
       dateTimeString,
       1
     ];
@@ -24,6 +25,25 @@ class TeamModel {
         } else if (result) {
           logger.info("Team created ", result);
           return resolve(true);
+        } else {
+          return resolve(false);
+        }
+      });
+    });
+  };
+
+  listTeam = () => {
+    const query = `Call list_teams()`;
+
+    return new Promise((resolve, reject) => {
+      const temp = mySqlConnection.query(query, (err, result) => {
+        console.log("SQL: ", temp.sql);
+        if (err) {
+          logger.error("Error in listing the team");
+          return reject(false);
+        } else if (result) {
+          logger.info("Team listed successfully");
+          return resolve({ success: true, result: result });
         } else {
           return resolve(false);
         }
