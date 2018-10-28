@@ -6,6 +6,7 @@ import passport from "passport";
 import morgan from "morgan";
 
 import loginRoute from "./modules/v1/login/routes/loginRoute";
+import tournamentRoute from "./modules/v1/tournament/routes/tournamentRoute";
 require("./modules/v1/services/passport");
 
 dotenv.load();
@@ -32,6 +33,7 @@ app.use(
 
 //Routes
 app.use("/", loginRoute);
+app.use("/tournament", tournamentRoute);
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {
