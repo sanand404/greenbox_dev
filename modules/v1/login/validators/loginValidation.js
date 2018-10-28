@@ -1,4 +1,5 @@
 import Joi from "joi";
+import logger from "../../../../lib/logger";
 
 class LoginValidation {
   loginValidation = (req, res, next) => {
@@ -15,12 +16,13 @@ class LoginValidation {
     Joi.validate(req.body, loginValidationSchema, (err, value) => {
       if (err) {
         console.log("Inside error", err);
+        logger.info("loginValidation err", err);
         return res.status(400).send({
           success: false,
           error: err.details[0].message
         });
       }
-      console.log("After err");
+      logger.info("loginValidation success");
       next();
     });
   };
@@ -38,11 +40,13 @@ class LoginValidation {
 
     Joi.validate(req.body, registrationValidationSchema, (err, value) => {
       if (err) {
+        logger.info("registrationValidation err", err);
         return res.status(400).send({
           success: false,
           error: err.details[0].message
         });
       }
+      logger.info("registrationValidation success");
       next();
     });
   };
@@ -52,13 +56,15 @@ class LoginValidation {
       emailId: Joi.string().email({ minDomainAtoms: 2 })
     });
 
-    Joi.validate(req.body, forgotPasswordValidationSchema, (err, result) => {
+    Joi.validate(req.body, forgotPasswordValidationSchema, (err, value) => {
       if (err) {
+        logger.info("forgotPasswordValidation err", err);
         return res.status(400).send({
           success: false,
           error: err.details[0].message
         });
       }
+      logger.info("forgotPasswordValidation success");
       next();
     });
   };

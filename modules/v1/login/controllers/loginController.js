@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import UserModel from "../../user/models/userModel";
 import MailUtility from "../../../../lib/SendMail/sendMail";
+import logger from "../../../../lib/logger";
 
 dotenv.load();
 
@@ -28,9 +29,11 @@ class LoginController {
 
       mailObj.sendMail(mailOptions, (err, data) => {
         if (err) {
+          logger.info("Mail send fail for AddUser ", user);
           return resolve(false);
           //res.status(400).send({ status: "error", result: err });
         } else {
+          logger.info("Mail send successfully for AddUser ", user);
           return resolve(true);
           //res.status(200).send({ status: "success", result: data.data });
         }
@@ -55,6 +58,7 @@ class LoginController {
         provider: newUser.provider
       }).then(async isUserExists => {
         if (isUserExists.result && isUserExists.result.length > 0) {
+          logger.info("EmailId already exists ", newUser);
           return res.send({
             success: false,
             message: "EmailId already exists"
@@ -69,7 +73,6 @@ class LoginController {
           .then(user => {
             if (user) {
               this.sendAddUserMail(newUser);
-
               res.send({ success: true, result: newUser });
             }
           })
@@ -77,9 +80,8 @@ class LoginController {
             res.send({ success: false, error: err });
           });
       });
-
-      console.log("--------------");
     } catch (err) {
+      logger.info("Error in createUser ", err);
       res.send({ success: false, error: err });
     }
   };
@@ -90,7 +92,7 @@ class LoginController {
   generateJWTToken = payload =>
     new Promise((resolve, reject) => {
       console.log("generateJWTToken payload : ", payload);
-
+      logger.info("generateJWTToken payload : ", payload);
       jwt.sign(
         payload,
         process.env.SECRET_KEY,
@@ -101,9 +103,11 @@ class LoginController {
         (err, token) => {
           if (err) {
             console.log("Error generateJWTToken", err);
+            logger.info("Error generateJWTToken", err);
             return resolve(false);
           }
           console.log("Token generateJWTToken : ", token);
+          logger.info("Token generateJWTToken : ", token);
           return resolve(token);
         }
       );
@@ -121,16 +125,19 @@ class LoginController {
 
     if (req.body && req.body.emailId) {
       console.log("In body ", req.body);
+      logger.info("In body ", req.body);
       emailId = req.body.emailId;
       password = req.body.password;
       provider = req.body.provider;
     } else if (req.user && req.user.user.length > 0) {
       console.log("In User body", req.user);
+      logger.info("In User body ", req.user);
       emailId = req.user.user[0].emailId;
       password = "";
       provider = req.user.user[0].provider;
     } else if (req.user && req.user.user.emailId) {
       console.log("If User register for first time by google OAuth");
+      logger.info("If User register for first time by google OAuth");
       emailId = req.user.user.emailId;
       password = "";
       provider = req.user.user.provider;
@@ -143,25 +150,27 @@ class LoginController {
     });
 
     console.log("$$$$$$$$$$", user);
-    //console.log("Constiotn ", !user);
-    //console.log("Sec ", user && user.result[0].isActive == 0);
-    //console.log("Active ", user.result[0].isActive);
+    logger.info("$$$$$$$$$$", user);
 
     if (!user || (user && user.result[0].isActive == 0)) {
+      logger.info("login EmailId not found");
       return res.send({ success: false, message: "EmailId not found" });
     }
 
     console.log("-----------", password);
 
     if (provider !== "playsoftech" && password) {
+      logger.info("login Invalid user");
       return res.send({ success: false, message: "Invalid user" });
     }
     const userPassword = user.result[0].password;
 
     console.log("---------UserPassword ", userPassword);
+    logger.info("---------UserPassword ", userPassword);
     const isMatch = await bcrypt.compare(password, userPassword);
 
     console.log("Password Match ", isMatch);
+    logger.info("Password Match ", isMatch);
     if (!isMatch && provider === "playsoftech") {
       return res.send({ success: false, message: "Password is incorrect" });
     }
@@ -214,6 +223,7 @@ class LoginController {
     console.log("-------IsActive forgotPAssword ", user[0].isActive);
 
     if (!user || (user && user[0].isActive == 0)) {
+      logger.info("forgot password Please check the email-id");
       return res.send({ success: false, message: "Please check the email-id" });
     }
 
@@ -249,8 +259,10 @@ class LoginController {
 
     mailObj.sendMail(mailOptions, (err, data) => {
       if (err) {
+        logger.info("Forgotpassword error in mail", err);
         res.status(400).send({ status: "error", result: err });
       } else {
+        logger.info("Forgotpassword success in mail", data);
         res.status(200).send({ status: "success", result: data.data });
       }
     });

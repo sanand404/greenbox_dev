@@ -1,8 +1,6 @@
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import express from "express";
 import dotenv from "dotenv";
-import expressSanitizer from "express-sanitizer";
 import cookieSession from "cookie-session";
 import passport from "passport";
 import morgan from "morgan";
@@ -34,6 +32,13 @@ app.use(
 
 //Routes
 app.use("/", loginRoute);
+
+// Catch 404 and forward to error handler
+app.use((req, res, next) => {
+  const err = new Error("Not Found");
+  err.status = 404;
+  next(err);
+});
 
 //Start the server
 app.listen(process.env.PORT || 3000, () => {

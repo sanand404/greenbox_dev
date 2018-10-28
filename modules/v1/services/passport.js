@@ -3,6 +3,7 @@ const JWTStrategy = require("passport-jwt").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const ExtractJWT = require("passport-jwt").ExtractJwt;
 //import { ExtractJWT } from "passport-jwt";
+import logger from "../../../lib/logger";
 
 import dotenv from "dotenv";
 import UserModel from "../user/models/userModel";
@@ -47,6 +48,7 @@ passport.use(
       });
       if (!User) {
         console.log("-----------Creating new user");
+        logger.info("-----------Creating new user");
         const newUser = await UserModel.addUser({
           idUser: profile.id,
           firstName: profile.name.givenName,
@@ -56,14 +58,17 @@ passport.use(
           provider: profile.provider
         });
         console.log("------------New User created ", newUser);
+        logger.info("------------New User created ", newUser);
         if (newUser) {
           console.log("--------------Sending response", newUser.data);
+          logger.info("--------------Sending response", newUser.data);
           done(null, { user: newUser.data, accessToken: accessToken });
         } else {
           done(null, false);
         }
       } else {
         console.log("------------User already exists ", User);
+        logger.info("------------User already exists ", User);
         done(null, { user: User, accessToken: accessToken });
       }
     }
@@ -79,14 +84,14 @@ passport.use(
       secretOrKey: process.env.SECRET_KEY
     },
     (payload, done) => {
-      console.log("--------------HEY ");
       console.log("Payload in passport ", payload);
+      logger.info("Payload in passport ", payload);
       UserModel.getUserId({
         emailId: payload.emailId,
         provider: payload.provider
       }).then(user => {
         console.log("Passport User ", user);
-
+        logger.info("Passport User ", user);
         if (user && user[0].isActive == 1) {
           delete user.password;
           return done(null, user);

@@ -2,6 +2,8 @@ import passport from "passport";
 import express from "express";
 import LoginController from "../controllers/loginController";
 import LoginValidation from "../validators/loginValidation";
+import logger from "../../../../lib/logger";
+
 const router = express.Router();
 
 router.post(
@@ -22,6 +24,7 @@ router.get(
   passport.authenticate("googleToken"),
   (req, res) => {
     console.log("Request body user", req.user);
+    logger.info("Request google access token loginRoute");
     console.log("Request google access token ", req.user.accessToken);
     LoginController.login(req, res);
   }
@@ -38,7 +41,7 @@ router.get(
 
 router.post(
   "/forgot_password",
-  LoginController.forgotPasswordValidation,
+  LoginValidation.forgotPasswordValidation,
   LoginController.forgotPassword
 );
 
