@@ -1,4 +1,5 @@
 {
-    "presets": ["es2015","stage-0"],
-    "plugins" : ["transform-class-properties"]
+  //"presets": ["latest", "es2015", "stage-0"],
+  "presets": ["@babel/preset-env"],
+  "plugins": ["transform-class-properties"]
 }

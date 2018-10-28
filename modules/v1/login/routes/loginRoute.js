@@ -1,16 +1,48 @@
-const passport = require("passport");
+import passport from "passport";
+import express from "express";
+import LoginController from "../controllers/loginController";
+import LoginValidation from "../validators/loginValidation";
+import logger from "../../../../lib/logger";
 
-module.exports = app => {
-  app.get(
-    "/auth/google",
-    passport.authenticate("google", {
-      scope: ["profile", "email"]
-    })
-  );
+const router = express.Router();
 
-  app.get("/auth/google/callback", passport.authenticate("google"));
-  app.get("/api/current_user", (req, res) => {
-    console.log("HEOOO");
+router.post(
+  "/register",
+  LoginValidation.registrationValidation,
+  LoginController.createUser
+);
+router.post("/login", LoginValidation.loginValidation, LoginController.login);
+router.get(
+  "/auth/google",
+  passport.authenticate("googleToken", {
+    session: false,
+    scope: ["profile", "email"]
+  })
+);
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("googleToken"),
+  (req, res) => {
+    console.log("Request body user", req.user);
+    logger.info("Request google access token loginRoute");
+    console.log("Request google access token ", req.user.accessToken);
+    LoginController.login(req, res);
+  }
+);
+
+router.get(
+  "/current_user",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    console.log("HEY ALMOST THERE");
     res.send(req.user);
-  });
-};
+  }
+);
+
+router.post(
+  "/forgot_password",
+  LoginValidation.forgotPasswordValidation,
+  LoginController.forgotPassword
+);
+
+export default router;
