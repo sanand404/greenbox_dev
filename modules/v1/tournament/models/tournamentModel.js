@@ -4,10 +4,11 @@ import logger from "../../../../lib/logger";
 class TournamentModel {
   createTournament = parameters => {
     return new Promise((resolve, reject) => {
-      const query = `INSERT INTO Tournament VALUES(?,?,?,?,?,?,?,?)`;
-      const idTournament = Math.floor(new Date() / 10);
+      // const query = `INSERT INTO Tournament VALUES(?,?,?,?,?,?,?,?)`;
+      const query = `Call create_tournament(?,?,?,?,?,?,?)`;
+      // const idTournament = Math.floor(new Date() / 10);
       const queryParameters = [
-        idTournament,
+        //idTournament,
         parameters.tournamentName,
         parameters.tournamentOrgBy,
         parameters.tournamentStartDate,
