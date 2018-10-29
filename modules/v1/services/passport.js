@@ -7,6 +7,7 @@ import logger from "../../../lib/logger";
 
 import dotenv from "dotenv";
 import UserModel from "../user/models/userModel";
+import loginController from "../login/controllers/loginController";
 
 dotenv.load();
 
@@ -62,6 +63,10 @@ passport.use(
         if (newUser) {
           console.log("--------------Sending response", newUser.data);
           logger.info("--------------Sending response", newUser.data);
+
+          //To send the mail to user on registration from Google
+          loginController.sendAddUserMail(newUser.data);
+
           done(null, { user: newUser.data, accessToken: accessToken });
         } else {
           done(null, false);
@@ -93,6 +98,7 @@ passport.use(
         console.log("Passport User ", user);
         logger.info("Passport User ", user);
         if (user && user[0].isActive == 1) {
+          console.log("Valid user");
           delete user.password;
           return done(null, user);
         } else {

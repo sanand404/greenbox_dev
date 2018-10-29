@@ -114,6 +114,7 @@ class UserModel {
               data: {
                 idUser: idUser,
                 emailId: parameter.emailId,
+                firstName: parameter.firstName,
                 provider: parameter.provider
               }
             });
