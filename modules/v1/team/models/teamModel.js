@@ -32,6 +32,30 @@ class TeamModel {
     });
   };
 
+  getTeamByName = parameters => {
+    const query = `SELECT teamName FROM Team WHERE teamName = ?`;
+    const queryParameter = [parameters.teamName];
+
+    return new Promise((resolve, reject) => {
+      const temp = mySqlConnection.query(
+        query,
+        queryParameter,
+        (err, result) => {
+          console.log("SQL: getTeamByName ", temp.sql, result);
+          if (err) {
+            logger.error("Error in getTeamByName ", err);
+            return reject(false);
+          } else if (result && result.length > 0) {
+            logger.info("getTeamByName ", result);
+            return resolve(true);
+          } else {
+            return resolve(false);
+          }
+        }
+      );
+    });
+  };
+
   listTeam = () => {
     const query = `Call list_teams()`;
 

@@ -3,6 +3,15 @@ import logger from "../../../../lib/logger";
 
 class TeamController {
   createTeam = async (req, res) => {
+    //Check if team exists
+    const isTeam = await TeamModel.getTeamByName(req.body);
+    if (isTeam) {
+      return res.send({
+        succes: false,
+        message: "Team already exists"
+      });
+    }
+
     const teamCreationResult = await TeamModel.createTeam(req.body);
     if (teamCreationResult) {
       logger.info("Team successfully created");
