@@ -8,7 +8,7 @@ const router = express.Router();
 router.post(
   "/create",
   passport.authenticate("jwt", { session: false }),
-  TourTeamValidation.tourTeamValidation,
+  //TourTeamValidation.tourTeamValidation,
   TourTeamController.create
 );
 
