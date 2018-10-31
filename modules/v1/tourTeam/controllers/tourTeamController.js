@@ -1,8 +1,4 @@
 import TourTeamModel from "../models/tourTeamModel";
-import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
-
-dotenv.load();
 
 class TourTeamController {
   create = async (req, res) => {
