@@ -66,11 +66,12 @@ class UserModel {
         (err, result) => {
           console.log("SQL getUserId: ", temp.sql);
           if (err) {
-            reject({ Error: "Error in fetching User Records " + err });
+            logger.error("Error in fetching User Records ", err);
+            return resolve(false);
           } else if (result.length) {
-            resolve(result);
+            return resolve(result);
           } else {
-            resolve(false);
+            return resolve(false);
           }
         }
       );

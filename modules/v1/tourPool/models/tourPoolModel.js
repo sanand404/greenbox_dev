@@ -48,7 +48,7 @@ class TourPoolModel {
             JOIN TourTeam tt 
                 ON tt.idTourTeam = tp.TourTeamId
             JOIN Team t
-                ON t.idTeam = tt.TeamId AND 1=1 AND tp.TournamentId = ? AND tp.TourTeamId = ? AND tp.poolGender = ?`;
+                ON 1=1 AND t.idTeam = tt.TeamId AND tp.TournamentId = ? AND tp.TourTeamId = ? AND tp.poolGender = ?`;
     const queryParameter = [
       parameters.TournamentId,
       parameters.TourTeamId,
@@ -76,6 +76,62 @@ class TourPoolModel {
   };
 
   /** */
+
+  /**Display the tour pool team by pool name */
+  getTourPoolTeamByName = parameters => {
+    const query = `Call list_pool_team_by_poolName(?, ?, ?)`;
+    const queryParameter = [
+      parameters.poolName,
+      parameters.TournamentId,
+      parameters.Gender
+    ];
+
+    return new Promise((resolve, reject) => {
+      const temp = mySqlConnection.query(
+        query,
+        queryParameter,
+        (err, result) => {
+          console.log("SQL getTourPoolTeamByName ", temp.sql);
+          if (err) {
+            logger.error("Error in getTourPoolTeamByName ", err);
+            resolve(false);
+          } else if (result && result.length > 0) {
+            logger.info("Result getTourPoolTeamByName ", result);
+            resolve({ success: true, result: result });
+          } else {
+            resolve(false);
+          }
+        }
+      );
+    });
+  };
+
+  /** */
+
+  /**List Pool Teams in Tournament */
+  getTourPoolTeams = parameters => {
+    const query = `Call list_pool_team(?, ?)`;
+    const queryParameter = [parameters.TournamentId, parameters.poolGender];
+
+    return new Promise((resolve, reject) => {
+      const temp = mySqlConnection.query(
+        query,
+        queryParameter,
+        (err, result) => {
+          console.log("SQL getTourPoolTeams ", temp.sql);
+          if (err) {
+            logger.error("Error in getTourPoolTeams ", err);
+            resolve(false);
+          } else if (result && result.length > 0) {
+            logger.info("Result getTourPoolTeams ", result);
+            resolve({ success: true, result: result });
+          } else {
+            resolve(false);
+          }
+        }
+      );
+    });
+  };
 }
 
 export default new TourPoolModel();
