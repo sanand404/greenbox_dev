@@ -2,28 +2,41 @@ import mySqlConnection from "../../services/mySQLConnection";
 import logger from "../../../../lib/logger";
 
 class TourMatchModel {
-  getTourPoolTeamByName = parameters => {
-    const query = `Call list_pool_team_by_poolName(?, ?, ?)`;
-    const queryParameter = [
-      parameters.poolName,
+  createTempMatch = (parameters, teamPair) => {
+    const query = "Call create_temp_match(?,?,?,?,?,?,?,?,?,?)";
+
+    const dateTimeString = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+
+    const queryParameters = [
+      teamPair.teamA,
+      teamPair.teamB,
+      parameters.poolGender,
+      parameters.matchType,
+      teamPair.poolName,
+      dateTimeString,
+      dateTimeString,
+      dateTimeString,
       parameters.TournamentId,
-      parameters.Gender
+      parameters.UserId
     ];
 
     return new Promise((resolve, reject) => {
       const temp = mySqlConnection.query(
         query,
-        queryParameter,
+        queryParameters,
         (err, result) => {
-          console.log("SQL getTourPoolTeamByName ", temp.sql);
+          console.log("SQL createTempMatch:: ", temp.sql);
           if (err) {
-            logger.error("Error in getTourPoolTeamByName ", err);
-            resolve(false);
-          } else if (result && result.length > 0) {
-            logger.info("Result getTourPoolTeamByName ", result);
-            resolve({ success: true, result: result });
+            logger.error("SQL createTempMatch Error", err);
+            return resolve(false);
+          } else if (result) {
+            logger.info("SQL createTempMatch", result);
+            return resolve(result);
           } else {
-            resolve(false);
+            return resolve(false);
           }
         }
       );

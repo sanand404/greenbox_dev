@@ -23,12 +23,21 @@ class TourPoolController {
       } else {
         const tourPoolResult = await TourPoolModel.createTourPool(tourPoolObj);
         if (!tourPoolResult) {
-          tourPoolReponse.faliure.push({
-            success: false,
-            message: `${tourPoolResult.result[1][0].teamName.toUpperCase()} already exists in POOL ${
-              tourPoolObj.poolName
-            }`
-          });
+          if (tourPoolResult.result) {
+            tourPoolReponse.faliure.push({
+              success: false,
+              message: `${tourPoolResult.result[1][0].teamName.toUpperCase()} already exists in POOL ${
+                tourPoolObj.poolName
+              }`
+            });
+          } else {
+            tourPoolReponse.faliure.push({
+              success: false,
+              message: `Register team in Tournament before add in POOL ${
+                tourPoolObj.poolName
+              }`
+            });
+          }
         } else {
           tourPoolReponse.success.push({
             success: true,
