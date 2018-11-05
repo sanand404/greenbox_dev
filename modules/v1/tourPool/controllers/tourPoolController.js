@@ -1,6 +1,10 @@
 import TourPoolModel from "../models/tourPoolModel";
+import _ from "lodash";
+import logger from "../../../../lib/logger";
 
 class TourPoolController {
+  /**Create the TourPool */
+
   create = async (req, res) => {
     const userId = req.user[0].idUser;
 
@@ -49,6 +53,37 @@ class TourPoolController {
       }
     }
     return res.send({ response: tourPoolReponse });
+  };
+
+  /** List the pool Team on Tournament and Gender */
+  listTourPoolTeam = async (req, res) => {
+    const TournamentId = req.params.tournamentId;
+    const poolGender = req.params.gender;
+
+    const tourPoolResult = await TourPoolModel.getTourPoolTeams({
+      TournamentId: TournamentId,
+      poolGender: poolGender
+    });
+
+    if (!tourPoolResult) {
+      logger.error("Error listTourPoolTeam :", tourPoolResult);
+      res.send({ success: false, data: tourPoolResult });
+    } else {
+      logger.info("listTourPoolTeam Result ", tourPoolResult);
+
+      let tourPoolTeamResponse = {};
+      if (tourPoolResult.result && tourPoolResult.result[0]) {
+        const groupPool = _.groupBy(tourPoolResult.result[0], "poolName");
+
+        _.map(groupPool, (values, keys) => {
+          tourPoolTeamResponse[keys] = tourPoolTeamResponse[keys] || [];
+          values.forEach(team => {
+            tourPoolTeamResponse[keys].push(team);
+          });
+        });
+      }
+      res.send({ success: true, data: tourPoolTeamResponse });
+    }
   };
 }
 

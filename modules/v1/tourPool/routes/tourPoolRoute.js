@@ -10,4 +10,6 @@ router.post(
   TourPoolController.create
 );
 
+router.get("/list/:tournamentId/:gender", TourPoolController.listTourPoolTeam);
+
 export default router;
