@@ -3,7 +3,7 @@ import _ from "lodash";
 import logger from "../../../../lib/logger";
 
 class TourPoolController {
-  /**Create the TourPool */
+  /** Create the TourPool */
 
   create = async (req, res) => {
     const userId = req.user[0].idUser;
@@ -12,10 +12,18 @@ class TourPoolController {
 
     for (const tourPoolObj of req.body) {
       tourPoolObj.UserId = userId;
-
-      const isTourPoolTeamExists = await TourPoolModel.checkTourPoolTeamExists(
-        tourPoolObj
-      );
+      let isTourPoolTeamExists;
+      try {
+        isTourPoolTeamExists = await TourPoolModel.checkTourPoolTeamExists(
+          tourPoolObj
+        );
+      } catch (error) {
+        console.log(
+          "Error in checkTourPoolTeamExists in tourPoolCOntroller ",
+          error
+        );
+        res.status(400).send({ success: false, message: error });
+      }
 
       if (isTourPoolTeamExists.success) {
         tourPoolReponse.faliure.push({
@@ -25,7 +33,14 @@ class TourPoolController {
           }`
         });
       } else {
-        const tourPoolResult = await TourPoolModel.createTourPool(tourPoolObj);
+        let tourPoolResult;
+        try {
+          tourPoolResult = await TourPoolModel.createTourPool(tourPoolObj);
+        } catch (error) {
+          console.log("Error in createTourPool in tourPoolController ", error);
+          res.status(400).send({ success: false, message: error });
+        }
+
         if (!tourPoolResult) {
           if (tourPoolResult.result) {
             tourPoolReponse.faliure.push({
@@ -52,26 +67,30 @@ class TourPoolController {
         }
       }
     }
-    return res.send({ response: tourPoolReponse });
+    return res.status(200).send({ success: true, response: tourPoolReponse });
   };
 
   /** List the pool Team on Tournament and Gender */
   listTourPoolTeam = async (req, res) => {
     const TournamentId = req.params.tournamentId;
     const poolGender = req.params.gender;
-
-    const tourPoolResult = await TourPoolModel.getTourPoolTeams({
-      TournamentId: TournamentId,
-      poolGender: poolGender
-    });
-
+    let tourPoolResult;
+    try {
+      tourPoolResult = await TourPoolModel.getTourPoolTeams({
+        TournamentId: TournamentId,
+        poolGender: poolGender
+      });
+    } catch (error) {
+      console.log("Error in listTourPoolTeam in tourPoolController ", error);
+      return res.status(400).send({ success: false, message: error });
+    }
     if (!tourPoolResult) {
       logger.error("Error listTourPoolTeam :", tourPoolResult);
       res.send({ success: false, data: tourPoolResult });
     } else {
       logger.info("listTourPoolTeam Result ", tourPoolResult);
 
-      let tourPoolTeamResponse = {};
+      const tourPoolTeamResponse = {};
       if (tourPoolResult.result && tourPoolResult.result[0]) {
         const groupPool = _.groupBy(tourPoolResult.result[0], "poolName");
 

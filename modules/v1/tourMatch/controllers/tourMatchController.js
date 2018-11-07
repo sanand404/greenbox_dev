@@ -3,7 +3,7 @@ import TourMatchModel from "../models/tourMatchModel";
 import _ from "lodash";
 
 class TourMatchController {
-  /**Group the team pool wise and generate the combination */
+  /** Group the team pool wise and generate the combination */
 
   generateTeamCombination = (poolName, teams) => {
     //  return new Promise((resolve, reject) => {
@@ -14,13 +14,13 @@ class TourMatchController {
       JSON.stringify(teams)
     );
 
-    if (teams.length % 2 != 0) {
+    if (teams.length % 2 !== 0) {
       teams.push({ teamName: "BYE", poolName: poolName });
     }
 
     const pairs = _.chunk(teams, 2);
     const size = teams.length;
-    let teamArr = new Array((size * (size - 1)) / 2);
+    const teamArr = new Array((size * (size - 1)) / 2);
 
     for (let i = 0; i < size / 2; i++) {
       teamArr[i] = new Array(2);
@@ -33,13 +33,13 @@ class TourMatchController {
       });
     }
 
-    /**Teams are */
+    /** Teams are */
     console.log("-------_TEAMS--------------");
     // for (let i = 0; i < pairs.length; i++) {
     //   console.log(teamArr[i][0], " ", teamArr[i][1]);
     // }
 
-    let matchTeam = [];
+    const matchTeam = [];
     for (let i = 0; i < size / 2; i++) {
       console.log("=====", teamArr[i][0].teamName, teamArr[i][1].teamName);
       matchTeam.push({
@@ -78,7 +78,7 @@ class TourMatchController {
     // });
   };
 
-  /**Geneate the match */
+  /** Geneate the match */
 
   create = async (req, res) => {
     const parameters = {
@@ -86,9 +86,14 @@ class TourMatchController {
       poolGender: req.body.poolGender
     };
 
-    let createMatchResponse = { success: [], failure: [] };
-    const tourPoolResult = await TourPoolModel.getTourPoolTeams(parameters);
-
+    const createMatchResponse = { success: [], failure: [] };
+    let tourPoolResult;
+    try {
+      tourPoolResult = await TourPoolModel.getTourPoolTeams(parameters);
+    } catch (error) {
+      console.log("Error for tourPoolResult in tourMatchController ", error);
+      return res.status(400).send({ success: false, message: error });
+    }
     parameters.UserId = req.user[0].idUser;
     parameters.matchType = req.body.matchType;
 
@@ -98,7 +103,7 @@ class TourMatchController {
     ) {
       return res.send({ success: true, message: "No team found " });
     } else {
-      var result = _.groupBy(tourPoolResult.result[0], team => team.poolName);
+      const result = _.groupBy(tourPoolResult.result[0], team => team.poolName);
 
       /**Collection of teams according to pool */
 
@@ -109,19 +114,27 @@ class TourMatchController {
       for (const teamMap of teamPairResult) {
         /** For RoundRobin cobination */
 
-        let teamCombinationResult = this.generateTeamCombination(
+        const teamCombinationResult = this.generateTeamCombination(
           teamMap.keys,
           teamMap.values
         );
 
-        /**To generate the match */
+        /** To generate the match */
 
         for (const teamPair of teamCombinationResult) {
-          const createTempMatchResult = await TourMatchModel.createTempMatch(
-            parameters,
-            teamPair
-          );
-
+          let createTempMatchResult;
+          try {
+            createTempMatchResult = await TourMatchModel.createTempMatch(
+              parameters,
+              teamPair
+            );
+          } catch (error) {
+            console.log(
+              "Error for createTempMatchResult in tourMatchController  ",
+              error
+            );
+            return res.status(400).send({ success: false, message: error });
+          }
           if (!createTempMatchResult) {
             createMatchResponse.failure.push({
               success: false,
@@ -140,7 +153,7 @@ class TourMatchController {
         }
       }
 
-      /**Sending the final response */
+      /** Sending the final response */
 
       return res
         .status(200)
