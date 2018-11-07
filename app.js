@@ -25,7 +25,7 @@ app.use(
   })
 );
 
-//Middlewares
+// Middlewares
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -36,7 +36,7 @@ app.use(
   })
 );
 
-//Routes
+// Routes
 app.use("/", loginRoute);
 app.use("/tournament", tournamentRoute);
 app.use("/team", teamRoute);
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
   next(err);
 });
 
-//Start the server
+// Start the server
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server started on port ", process.env.PORT);
 });

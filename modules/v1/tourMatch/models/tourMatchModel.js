@@ -42,6 +42,35 @@ class TourMatchModel {
       );
     });
   };
+
+  getTempMatch = parameters => {
+    const query = ` SELECT teamA, teamB, gender, matchType, abbrMatchType, poolName, TournamentId FROM TempMatch tm WHERE tm.TournamentId = ? AND gender = ? AND (matchType = ? || abbrMatchType = ?) AND isVisited = 0`;
+
+    const queryParameters = [
+      parameters.TournamentId,
+      parameters.gender,
+      parameters.matchType,
+      parameters.matchType
+    ];
+
+    return new Promise((resolve, reject) => {
+      const temp = mySqlConnection.query(
+        query,
+        queryParameters,
+        (err, result) => {
+          console.log("Sql: getTempMatch ", temp.sql);
+          if (err) {
+            logger.error("Error in getTempMatch in tourMatchModel ", err);
+            return reject({ success: false, message: err });
+          } else if (result && result.length > 0) {
+            logger.info("Success in getTempMatch in tourMatchModel ", result);
+            return resolve({ success: true, result });
+          }
+          return resolve(false);
+        }
+      );
+    });
+  };
 }
 
 export default new TourMatchModel();

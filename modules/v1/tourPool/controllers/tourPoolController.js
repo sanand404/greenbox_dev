@@ -18,7 +18,7 @@ class TourPoolController {
           tourPoolObj
         );
       } catch (error) {
-        console.log(
+        logger.error(
           "Error in checkTourPoolTeamExists in tourPoolCOntroller ",
           error
         );
@@ -37,7 +37,7 @@ class TourPoolController {
         try {
           tourPoolResult = await TourPoolModel.createTourPool(tourPoolObj);
         } catch (error) {
-          console.log("Error in createTourPool in tourPoolController ", error);
+          logger.error("Error in createTourPool in tourPoolController ", error);
           res.status(400).send({ success: false, message: error });
         }
 
@@ -81,7 +81,7 @@ class TourPoolController {
         poolGender: poolGender
       });
     } catch (error) {
-      console.log("Error in listTourPoolTeam in tourPoolController ", error);
+      logger.error("Error in listTourPoolTeam in tourPoolController ", error);
       return res.status(400).send({ success: false, message: error });
     }
     if (!tourPoolResult) {
