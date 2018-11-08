@@ -2,6 +2,9 @@ import TourPoolModel from "../../tourPool/models/tourPoolModel";
 import TourMatchModel from "../models/tourMatchModel";
 import _ from "lodash";
 import logger from "../../../../lib/logger";
+import { on } from "cluster";
+import { rejects } from "assert";
+import { resolve } from "dns";
 
 class TourMatchController {
   /** Group the team pool wise and generate the combination */
@@ -192,11 +195,63 @@ class TourMatchController {
     for (let i = 0; i < teamPairResult.length; i++) {
       poolList.push(teamPairResult[i].keys);
     }
-    console.log("---------_Result keys", poolList);
 
-    console.log("GetTempMatchResult ", JSON.stringify(teamPairResult));
-    console.log("-------------- ", getTempMatchResult.result.length);
-    res.status(200).send({ success: true, data: teamPairResult });
+    const totalMatchSize = getTempMatchResult.result.length;
+
+    // To get the team cobinatio according to Pool
+
+    let teamCombinationResult;
+    try {
+      teamCombinationResult = await this.getMatchList(
+        teamPairResult,
+        poolList,
+        totalMatchSize
+      );
+    } catch (error) {
+      logger.error("Error in match generate ", error);
+      return res
+        .status(400)
+        .send({ success: false, message: "Error in match generate" });
+    }
+
+    for (const team of teamCombinationResult) {
+      try {
+        await TourMatchModel.createTourMatch(team);
+      } catch (error) {
+        logger.error("Error in createTourMatch in tourMatchController ", error);
+        return res
+          .status(400)
+          .send({ success: false, message: "Error in match generate" });
+      }
+    }
+    res.status(200).send({
+      success: true,
+      message: `Match successfully created ${teamCombinationResult.length}`
+    });
+  };
+
+  /** Combination of Matches for TourMatch */
+
+  getMatchList = (teamPairResult, poolList, totalMatchSize) => {
+    const matchCombination = [];
+
+    return new Promise((resolve, reject) => {
+      let j = 0;
+      for (let i = 0; i < totalMatchSize; ) {
+        if (poolList.length === j) {
+          j = 0;
+        }
+        const oneTeam = _.find(teamPairResult, { keys: poolList[j] });
+        if (oneTeam.values.length > 0) {
+          const teamObj = oneTeam.values.shift();
+          matchCombination.push(teamObj);
+          i += 1;
+        }
+        j += 1;
+      }
+
+      return resolve(matchCombination);
+    });
   };
 }
 
