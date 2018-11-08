@@ -2,7 +2,7 @@ import mySqlConnection from "../../services/mySQLConnection";
 import logger from "../../../../lib/logger";
 
 class TourTeamModel {
-  /**To create tournament team */
+  /** To create tournament team */
 
   create = parameters => {
     const query =
@@ -41,7 +41,7 @@ class TourTeamModel {
     });
   };
 
-  /**Check for tournament team before add */
+  /** Check for tournament team before add */
   checkTourTeamExists = parameters => {
     const query = `SELECT idTourTeam, teamName FROM TourTeam tt 
     JOIN Team t 
