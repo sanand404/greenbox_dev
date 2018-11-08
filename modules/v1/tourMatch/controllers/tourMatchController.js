@@ -2,9 +2,6 @@ import TourPoolModel from "../../tourPool/models/tourPoolModel";
 import TourMatchModel from "../models/tourMatchModel";
 import _ from "lodash";
 import logger from "../../../../lib/logger";
-import { on } from "cluster";
-import { rejects } from "assert";
-import { resolve } from "dns";
 
 class TourMatchController {
   /** Group the team pool wise and generate the combination */
