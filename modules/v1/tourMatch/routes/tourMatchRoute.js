@@ -10,4 +10,10 @@ router.post(
   TourMatchController.create
 );
 
+router.post(
+  "/generateTourMatch",
+  passport.authenticate("jwt", { session: false }),
+  TourMatchController.createTourMatch
+);
+
 export default router;

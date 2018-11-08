@@ -1,6 +1,10 @@
 import TourPoolModel from "../../tourPool/models/tourPoolModel";
 import TourMatchModel from "../models/tourMatchModel";
 import _ from "lodash";
+import logger from "../../../../lib/logger";
+import { on } from "cluster";
+import { rejects } from "assert";
+import { resolve } from "dns";
 
 class TourMatchController {
   /** Group the team pool wise and generate the combination */
@@ -78,7 +82,7 @@ class TourMatchController {
     // });
   };
 
-  /** Geneate the match */
+  /** Geneate the temporary tournament match */
 
   create = async (req, res) => {
     const parameters = {
@@ -91,7 +95,7 @@ class TourMatchController {
     try {
       tourPoolResult = await TourPoolModel.getTourPoolTeams(parameters);
     } catch (error) {
-      console.log("Error for tourPoolResult in tourMatchController ", error);
+      logger.error("Error for tourPoolResult in tourMatchController ", error);
       return res.status(400).send({ success: false, message: error });
     }
     parameters.UserId = req.user[0].idUser;
@@ -99,13 +103,13 @@ class TourMatchController {
 
     if (
       !tourPoolResult ||
-      (tourPoolResult && tourPoolResult.result[0].length == 0)
+      (tourPoolResult && tourPoolResult.result[0].length === 0)
     ) {
       return res.send({ success: true, message: "No team found " });
     } else {
       const result = _.groupBy(tourPoolResult.result[0], team => team.poolName);
 
-      /**Collection of teams according to pool */
+      /** Collection of teams according to pool */
 
       const teamPairResult = _.map(result, (values, keys) => {
         return { keys: keys, values: values };
@@ -129,7 +133,7 @@ class TourMatchController {
               teamPair
             );
           } catch (error) {
-            console.log(
+            logger.error(
               "Error for createTempMatchResult in tourMatchController  ",
               error
             );
@@ -159,6 +163,95 @@ class TourMatchController {
         .status(200)
         .send({ success: true, message: createMatchResponse });
     }
+  };
+
+  /** Generate tournament match */
+
+  createTourMatch = async (req, res) => {
+    let getTempMatchResult;
+    try {
+      const parameters = {
+        TournamentId: req.body.tournamentId,
+        gender: req.body.gender,
+        matchType: req.body.matchType
+      };
+      getTempMatchResult = await TourMatchModel.getTempMatch(parameters);
+    } catch (error) {
+      logger.error("Error in createTourMatch ", error);
+      return res.status(400).send({ success: false, message: error });
+    }
+    const result = _.groupBy(
+      getTempMatchResult.result,
+      tempMatch => tempMatch.poolName
+    );
+
+    /** Collection of teams according to pool */
+
+    const teamPairResult = _.map(result, (values, keys) => {
+      return { keys, values };
+    });
+
+    const poolList = [];
+    for (let i = 0; i < teamPairResult.length; i++) {
+      poolList.push(teamPairResult[i].keys);
+    }
+
+    const totalMatchSize = getTempMatchResult.result.length;
+
+    // To get the team cobinatio according to Pool
+
+    let teamCombinationResult;
+    try {
+      teamCombinationResult = await this.getMatchList(
+        teamPairResult,
+        poolList,
+        totalMatchSize
+      );
+    } catch (error) {
+      logger.error("Error in match generate ", error);
+      return res
+        .status(400)
+        .send({ success: false, message: "Error in match generate" });
+    }
+
+    for (const team of teamCombinationResult) {
+      try {
+        await TourMatchModel.createTourMatch(team);
+      } catch (error) {
+        logger.error("Error in createTourMatch in tourMatchController ", error);
+        return res
+          .status(400)
+          .send({ success: false, message: "Error in match generate" });
+      }
+    }
+    res.status(200).send({
+      success: true,
+      message: `Match successfully created ${teamCombinationResult.length}`
+    });
+  };
+
+  /** Combination of Matches for TourMatch */
+
+  getMatchList = (teamPairResult, poolList, totalMatchSize) => {
+    const matchCombination = [];
+
+    return new Promise((resolve, reject) => {
+      let j = 0;
+      for (let i = 0; i < totalMatchSize; ) {
+        if (poolList.length === j) {
+          j = 0;
+        }
+        const oneTeam = _.find(teamPairResult, { keys: poolList[j] });
+        if (oneTeam.values.length > 0) {
+          const teamObj = oneTeam.values.shift();
+          matchCombination.push(teamObj);
+          i += 1;
+        }
+        j += 1;
+      }
+
+      return resolve(matchCombination);
+    });
   };
 }
 
