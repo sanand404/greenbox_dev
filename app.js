@@ -11,6 +11,7 @@ import teamRoute from "./modules/v1/team/routes/teamRoute";
 import tourTeamRoute from "./modules/v1/tourTeam/routes/tourTeamRoute";
 import tourPoolRoute from "./modules/v1/tourPool/routes/tourPoolRoute";
 import tourMatchRoute from "./modules/v1/tourMatch/routes/tourMatchRoute";
+import memberRoute from "./modules/v1/Member/routes/memberRoute";
 
 require("./modules/v1/services/passport");
 
@@ -43,8 +44,10 @@ app.use("/team", teamRoute);
 app.use("/tourteam", tourTeamRoute);
 app.use("/tourpool", tourPoolRoute);
 app.use("/tourmatch", tourMatchRoute);
+app.use("/member", memberRoute);
 
 // Catch 404 and forward to error handler
+
 app.use((req, res, next) => {
   const err = new Error("Not Found");
   err.status = 404;
