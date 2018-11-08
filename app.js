@@ -12,6 +12,7 @@ import tourTeamRoute from "./modules/v1/tourTeam/routes/tourTeamRoute";
 import tourPoolRoute from "./modules/v1/tourPool/routes/tourPoolRoute";
 import tourMatchRoute from "./modules/v1/tourMatch/routes/tourMatchRoute";
 import memberRoute from "./modules/v1/Member/routes/memberRoute";
+import tourPlayerRoute from "./modules/v1/tourPlayer/routes/tourPlayerRoute";
 
 require("./modules/v1/services/passport");
 
@@ -45,6 +46,7 @@ app.use("/tourteam", tourTeamRoute);
 app.use("/tourpool", tourPoolRoute);
 app.use("/tourmatch", tourMatchRoute);
 app.use("/member", memberRoute);
+app.use("/tourplayer", tourPlayerRoute);
 
 // Catch 404 and forward to error handler
 
