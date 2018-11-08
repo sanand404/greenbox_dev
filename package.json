@@ -57,6 +57,7 @@
     "eslint-config-airbnb": "^14.1.0",
     "eslint-import-resolver-babel-module": "^4.0.0",
     "eslint-plugin-import": "^2.11.0",
+    "postal-codes-js": "^2.0.0",
     "rimraf": "^2.6.2"
   }
 }
